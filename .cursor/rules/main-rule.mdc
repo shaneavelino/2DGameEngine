@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+I'm creating a 2D RPG strategy game. The main game loop is that a player will create a team of 5 characters of different classes. They will be able to allot points to each character like WoW/DND, and also build out a talent tree which will improve the character's stats and abilities. The characters will also have abilities. 3 regular abilities and a fourth ultimate ability. These abilities will be cast automatically based on their activation time. The player will not manually activate abilities rather, the player can choose from the pool of abilities each character class has. Once the player has built out their team, the battle loop goes as follows:
+
+The game will simulate/automate the battle system--attacking, healing, supporting, in a hex-style grid format. The player will go fight through dungeons and select dungeons based on an overworld. (Stage 0-1, 0-2... 5-1, 5-2, etc.) At the end of each stage, 5-10, they will battle the final boss.
+
+Some overworld stages will feature a raid boss, where the player will have to enlist 10 characters.
+
+Help me build out this abstract character class so we can create other classes such as Warrior, Mage, Druid from it later.
