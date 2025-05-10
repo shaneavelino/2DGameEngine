@@ -1,12 +1,28 @@
 plugins {
     id("java")
+    id("application")
 }
 
 group = "org.lavostudio"
 version = "1.0-SNAPSHOT"
 
+application {
+    mainClass.set("org.lavostudio.Main")
+    
+    // Add JVM arguments for macOS
+    applicationDefaultJvmArgs = listOf("-XstartOnFirstThread")
+}
+
 repositories {
     mavenCentral()
+}
+
+// Add a task to generate placeholder images
+tasks.register<JavaExec>("generatePlaceholders") {
+    group = "application"
+    description = "Generate placeholder images for testing"
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("org.lavostudio.PlaceholderGenerator")
 }
 
 dependencies {
@@ -38,4 +54,7 @@ dependencies {
     runtimeOnly("org.lwjgl", "lwjgl-opengl", classifier = lwjglNatives)
     runtimeOnly("org.lwjgl", "lwjgl-stb", classifier = lwjglNatives)
     implementation("org.joml", "joml", jomlVersion)
+    
+    // Add JetBrains annotations dependency for @NotNull
+    implementation("org.jetbrains:annotations:24.1.0")
 }

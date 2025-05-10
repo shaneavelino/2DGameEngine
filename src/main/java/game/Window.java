@@ -1,5 +1,6 @@
-package Lavos;
+package game;
 
+import engine.renderer.Renderer;
 import org.lwjgl.*;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.*;
@@ -20,10 +21,24 @@ public class Window {
     // The window handle
     private long window;
 
+    private final Renderer renderer;
+
+    private GameManager gameManager;
+
+    // Game state flags
+    private boolean initialized = false;
+
+    // Delta time tracking
+    private double lastFrameTime = 0.0;
+    private double deltaTime = 0.0;
+
     public Window() {
         this.width = 1920;
         this.height = 1080;
-        this.title = "Mario";
+        this.title = "RPG Strategy Game";
+
+        // Initialize the renderer instance
+        this.renderer = Renderer.get();
     }
 
     public void run() {
@@ -47,7 +62,7 @@ public class Window {
         GLFWErrorCallback.createPrint(System.err).set();
 
         // Initialize GLFW. Most GLFW functions will not work before doing this.
-        if ( !glfwInit() )
+        if (!glfwInit())
             throw new IllegalStateException("Unable to initialize GLFW");
 
         // Configure GLFW
@@ -57,17 +72,18 @@ public class Window {
 
         // Create the window
         window = glfwCreateWindow(this.width, this.height, this.title, NULL, NULL);
-        if ( window == NULL )
+        if (window == NULL)
             throw new RuntimeException("Failed to create the GLFW window");
 
-        // Set up a key callback. It will be called every time a key is pressed, repeated or released.
+        // Set up a key callback. It will be called every time a key is pressed,
+        // repeated or released.
         glfwSetKeyCallback(window, (window, key, scancode, action, mods) -> {
-            if ( key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE )
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                 glfwSetWindowShouldClose(window, true); // We will detect this in the rendering loop
         });
 
         // Get the thread stack and push a new frame
-        try ( MemoryStack stack = stackPush() ) {
+        try (MemoryStack stack = stackPush()) {
             IntBuffer pWidth = stack.mallocInt(1); // int*
             IntBuffer pHeight = stack.mallocInt(1); // int*
 
@@ -81,8 +97,7 @@ public class Window {
             glfwSetWindowPos(
                     window,
                     (vidmode.width() - pWidth.get(0)) / 2,
-                    (vidmode.height() - pHeight.get(0)) / 2
-            );
+                    (vidmode.height() - pHeight.get(0)) / 2);
         } // the stack frame is popped automatically
 
         // Make the OpenGL context current
@@ -102,19 +117,75 @@ public class Window {
         // bindings available for use.
         GL.createCapabilities();
 
+        // Initialize renderer
+        renderer.init();
+
+        // Initialize game state
+        initializeGame();
+
         // Set the clear color
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+        // Initial time
+        lastFrameTime = glfwGetTime();
+
         // Run the rendering loop until the user has attempted to close
         // the window or has pressed the ESCAPE key.
-        while ( !glfwWindowShouldClose(window) ) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+        while (!glfwWindowShouldClose(window)) {
+            // Calculate delta time
+            double currentTime = glfwGetTime();
+            deltaTime = currentTime - lastFrameTime;
+            lastFrameTime = currentTime;
 
+            // Update game state
+            update(deltaTime);
+
+            // Render frame
+            render();
+
+            // Swap buffers and poll events
             glfwSwapBuffers(window); // swap the color buffers
-
-            // Poll for window events. The key callback above will only be
-            // invoked during this call.
             glfwPollEvents();
         }
+    }
+
+    private void initializeGame() {
+        if (!initialized) {
+            // Create game manager instance
+            gameManager = new GameManager(renderer);
+            initialized = true;
+        }
+    }
+
+    private void update(double deltaTime) {
+        // Update game state
+        if (gameManager != null) {
+            gameManager.update(deltaTime);
+        }
+        // This would update all game entities, characters, etc.
+    }
+
+    private void render() {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
+
+        // Render the game
+        renderer.render();
+    }
+
+    // Accessor methods for other game systems
+    public Renderer getRenderer() {
+        return renderer;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public double getDeltaTime() {
+        return deltaTime;
     }
 }
